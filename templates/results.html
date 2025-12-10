@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="py-10">
+    <div class="flex items-center justify-between mb-8">
+        <h2 class="text-3xl font-bold">Results for "<span class="text-blue-400">{{ data.query }}</span>"</h2>
+        <a href="/" class="text-slate-400 hover:text-white transition-colors">&larr; New Search</a>
+    </div>
+
+    {% include "partials/results_content.html" %}
+</div>
+{% endblock %}

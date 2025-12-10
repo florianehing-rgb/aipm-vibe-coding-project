@@ -1,0 +1,181 @@
+{% if not data.discogs and not data.ebay %}
+<div class="bg-red-900/20 border border-red-900 p-6 rounded-lg text-center">
+    <h3 class="text-xl font-bold text-red-500 mb-2">No Results Found</h3>
+    <p class="text-slate-400">We couldn't find any data for this record. Try checking the spelling or a different
+        release.</p>
+</div>
+{% else %}
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <!-- Album Card -->
+    <div class="bg-slate-800 rounded-xl overflow-hidden shadow-lg border border-slate-700">
+        {% if data.discogs and data.discogs.cover_image %}
+        <div class="h-64 overflow-hidden relative group">
+            <img src="{{ data.discogs.cover_image or '' }}" alt="Cover"
+                class="w-full h-full object-cover group-hover:scale-110 transition duration-500">
+            <div class="absolute inset-0 bg-gradient-to-t from-slate-900 to-transparent opacity-60"></div>
+        </div>
+        {% else %}
+        <div class="h-64 bg-slate-700 flex items-center justify-center">
+            <span class="text-slate-500 text-4xl">?</span>
+        </div>
+        {% endif %}
+        <div class="p-6">
+            <h3 class="text-2xl font-bold mb-1">{{ data.discogs.title if data.discogs else 'Unknown Title' }}</h3>
+            <p class="text-blue-400">{{ data.discogs.year if data.discogs else 'Unknown Year' }}</p>
+            <div class="mt-2 text-sm text-slate-400">
+                {% if data.discogs and data.discogs.format %}
+                {{ data.discogs.format | join(', ') }}
+                {% endif %}
+            </div>
+
+            {% if data.discogs and data.discogs.url %}
+            <a href="{{ data.discogs.url }}" target="_blank"
+                class="mt-4 block w-full text-center py-2 border border-slate-600 rounded hover:bg-slate-700 transition">
+                View on Discogs
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="md:col-span-2 space-y-6">
+        <!-- Market Stats -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <!-- Card 1: Average/Estimate -->
+            <div class="bg-slate-800 p-6 rounded-xl border border-slate-700">
+                {% if data.ebay %}
+                <p class="text-slate-400 text-sm uppercase tracking-wide">Avg Price (eBay)</p>
+                <p class="text-3xl font-bold text-green-400">${{ data.ebay.stats.average_price }}</p>
+                {% elif data.discogs and data.discogs.prices and data.discogs.prices['Very Good (VG)'] %}
+                <p class="text-slate-400 text-sm uppercase tracking-wide">Est. Value (VG)</p>
+                <p class="text-3xl font-bold text-green-400">€{{ data.discogs.prices['Very Good (VG)'].value }}</p>
+                {% else %}
+                <p class="text-slate-400 text-sm uppercase tracking-wide">Avg Price</p>
+                <p class="text-3xl font-bold text-slate-500">N/A</p>
+                {% endif %}
+            </div>
+
+            <!-- Card 2: Lowest Price -->
+            <div class="bg-slate-800 p-6 rounded-xl border border-slate-700">
+                {% if data.ebay %}
+                <p class="text-slate-400 text-sm uppercase tracking-wide">Lowest Sold (eBay)</p>
+                <p class="text-3xl font-bold text-white">${{ data.ebay.stats.min_price }}</p>
+                {% elif data.discogs and data.discogs.marketplace and data.discogs.marketplace.lowest_price %}
+                <p class="text-slate-400 text-sm uppercase tracking-wide">Lowest Listed</p>
+                <p class="text-3xl font-bold text-white">€{{ data.discogs.marketplace.lowest_price.value }}</p>
+                {% else %}
+                <p class="text-slate-400 text-sm uppercase tracking-wide">Lowest Price</p>
+                <p class="text-3xl font-bold text-slate-500">N/A</p>
+                {% endif %}
+            </div>
+
+            <!-- Card 3: Rarity/Availability -->
+            <div class="bg-slate-800 p-6 rounded-xl border border-slate-700">
+                <p class="text-slate-400 text-sm uppercase tracking-wide">Availability</p>
+                {% if data.discogs and data.discogs.marketplace %}
+                <p class="text-3xl font-bold text-purple-400">{{ data.discogs.marketplace.num_for_sale }} <span
+                        class="text-sm text-slate-500">for sale</span></p>
+                {% elif data.ebay %}
+                <p class="text-3xl font-bold text-purple-400">{{ data.ebay.stats.count }} <span
+                        class="text-sm text-slate-500">sold recently</span></p>
+                {% else %}
+                <p class="text-3xl font-bold text-slate-500">Unknown</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Data Table (eBay Sold OR Discogs Valuation) -->
+        <div class="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden">
+            <div class="p-4 bg-slate-800/50 border-b border-slate-700 flex justify-between items-center">
+                <h3 class="font-bold">
+                    {% if data.ebay %}
+                    Recent Sold Listings (eBay)
+                    {% else %}
+                    Market Value Guide (Discogs)
+                    {% endif %}
+                </h3>
+            </div>
+            <!-- ... existing table content ... -->
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-slate-900/50 text-slate-400 uppercase text-xs">
+                        <tr>
+                            <th class="p-4">Condition / Item</th>
+                            <th class="p-4">Price</th>
+                            <th class="p-4">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-700">
+                        {% if data.ebay and data.ebay.sold_listings %}
+                        {% for item in data.ebay.sold_listings %}
+                        <tr class="hover:bg-slate-700/50 transition">
+                            <td class="p-4 text-white line-clamp-1 block">{{ item.title }}</td>
+                            <td class="p-4 font-mono text-green-400">{{ item.price }}</td>
+                            <td class="p-4">
+                                <a href="{{ item.link }}" target="_blank" class="text-blue-400 hover:text-blue-300">View
+                                    &rarr;</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        {% elif data.discogs and data.discogs.prices %}
+                        {% for condition, price_data in data.discogs.prices.items() %}
+                        <tr class="hover:bg-slate-700/50 transition">
+                            <td class="p-4 text-white font-medium">{{ condition }}</td>
+                            <td class="p-4 font-mono text-green-400">€{{ price_data.value }}</td>
+                            <td class="p-4">
+                                <span class="text-slate-500">Est. Value</span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        {% else %}
+                        <tr>
+                            <td colspan="3" class="p-8 text-center text-slate-500">
+                                No pricing data available.
+                                <a href="https://www.ebay.com/sch/i.html?_nkw={{ data.query }}" target="_blank"
+                                    class="text-blue-400 hover:underline">Search eBay manually &rarr;</a>
+                            </td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        {% if data.popsike and data.popsike.listings %}
+        <!-- Popsike Table -->
+        <div class="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden mt-6">
+            <div class="p-4 bg-slate-800/50 border-b border-slate-700 flex justify-between items-center">
+                <h3 class="font-bold text-yellow-500">Historical Auction Highlights (Popsike)</h3>
+                <span class="text-xs text-slate-400">{{ data.popsike.count }} results found</span>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-slate-900/50 text-slate-400 uppercase text-xs">
+                        <tr>
+                            <th class="p-4">Item</th>
+                            <th class="p-4">Date</th>
+                            <th class="p-4">Price</th>
+                            <th class="p-4">Link</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-700">
+                        {% for item in data.popsike.listings %}
+                        <tr class="hover:bg-slate-700/50 transition">
+                            <td class="p-4 text-white line-clamp-1 block" title="{{ item.title }}">{{ item.title }}</td>
+                            <td class="p-4 text-slate-400 whitespace-nowrap">{{ item.date }}</td>
+                            <td class="p-4 font-mono text-yellow-400 font-bold">{{ item.price }}</td>
+                            <td class="p-4">
+                                <a href="{{ item.link }}" target="_blank" class="text-blue-400 hover:text-blue-300">View
+                                    &rarr;</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endif %}

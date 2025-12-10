@@ -1,0 +1,26 @@
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environment variables
+.env
+
+# Instance folder (Flask DBs)
+instance/
+*.sqlite3
+*.db
+
+# Cache
+search_cache.json
+
+# Debug/Temp files
+popsike_debug.html
+full_page.html
+partial.html
+pop_test.html
+debug_popsike.html
+
+# OS
+.DS_Store
